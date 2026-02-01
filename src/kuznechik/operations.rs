@@ -79,7 +79,7 @@ const L_VEC: [u8; 16] = [ 0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01, 0xFB, 0x01, 
 pub fn x_transform(block: [u8; BLOCK_SIZE], xor_arr: [u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     let mut result: [u8; BLOCK_SIZE] = [0x00;BLOCK_SIZE];
     for i in 0..BLOCK_SIZE {
-        result[i] = block[i] ^ xor_arr[i];
+        result[i] = block[i].clone() ^ xor_arr[i];
     }
     result
 }
