@@ -3,7 +3,7 @@
 **Реализация блочных шифров ГОСТ Р 34.12-2015 на языке Rust**
 
 [![Rust](https://img.shields.io/badge/Rust-1.93%2B-orange?logo=rust)](https://www.rust-lang.org/)
-[![Протестировано на КП](https://img.shields.io/badge/%D0%9F%D1%80%D0%BE%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BE%20%D0%BD%D0%B0%20%D0%9A%D0%9F-green.svg)](##контрольные-примеры)
+[![Протестировано на КП](https://img.shields.io/badge/%D0%9F%D1%80%D0%BE%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BE%20%D0%BD%D0%B0%20%D0%9A%D0%9F-green.svg)](#контрольные-примеры)
 
 ## 🚀 О проекте
 
