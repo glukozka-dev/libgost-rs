@@ -2,8 +2,8 @@
 
 **Реализация блочных шифров ГОСТ Р 34.12-2015 на языке Rust**
 
-[![Rust](https://img.shields.io/badge/Rust-1.60%2B-orange?logo=rust)](https://www.rust-lang.org/)
-[![Протестировано на КТ](https://img.shields.io/badge/%D0%9F%D1%80%D0%BE%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BE%20%D0%BD%D0%B0%20%D0%9A%D0%9E%D0%97-green.svg)](#контрольные-примеры)
+[![Rust](https://img.shields.io/badge/Rust-1.93%2B-orange?logo=rust)](https://www.rust-lang.org/)
+[![Протестировано на КП](https://img.shields.io/badge/%D0%9F%D1%80%D0%BE%D1%82%D0%B5%D1%81%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BE%20%D0%BD%D0%B0%20%D0%9A%D0%9F-green.svg)](##контрольные-примеры)
 
 ## 🚀 О проекте
 
@@ -37,6 +37,20 @@
 
 ---
 
+## Контрольные примеры
+
+В своей работе я старался опираться на контрольные примеры, которые есть в ГОСТ.
+Вы можете найти их в приложении А, по следующим ссылкам.
+1) [ГОСТ Р 50.1.113](https://tc26.ru/standard/rs/%D0%A0%2050.1.113-2016.pdf)
+2) [ГОСТ Р 34.13─2015](https://tc26.ru/standard/gost/GOST_R_3413-2015.pdf)
+3) [ГОСТ Р 34.12-2015](https://tc26.ru/standard/gost/GOST_R_3412-2015.pdf)
+
+Я хотел пройти и тесты streebog, но к сожалению текущая реализация streebog использует другой порядок байт, однако она
+проходит тесты от [gost-engine](https://github.com/gost-engine/engine) в папке etalon ( кроме кирилицы почему-то), поэтому думаю она сделана математически верно.
+Плюс KDF и HMAC опираются на реализацию streebog и по скольку они проходят тесты ГОСТ, то значит функция streebog реализована верно.
+
+---
+
 ## 📦 Использование
 
 Добавьте в ваш `Cargo.toml`:
@@ -44,3 +58,4 @@
 ```toml
 [dependencies]
 libgost-rs = { git = "https://github.com/ваш-username/libgost-rs.git" }
+```
