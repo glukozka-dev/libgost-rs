@@ -84,6 +84,14 @@ pub fn x_transform(block: [u8; BLOCK_SIZE], xor_arr: [u8; BLOCK_SIZE]) -> [u8; B
     result
 }
 
+pub fn x_transform_iv(block: [u8; BLOCK_SIZE], xor_arr: &[u8]) -> [u8; BLOCK_SIZE] {
+    let mut result: [u8; BLOCK_SIZE] = [0x00;BLOCK_SIZE];
+    for i in 0..BLOCK_SIZE {
+        result[i] = block[i].clone() ^ xor_arr[i];
+    }
+    result
+}
+
 pub fn s_transform(block: [u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     let mut result: [u8;BLOCK_SIZE] = [0x00;BLOCK_SIZE];
     for i in 0..BLOCK_SIZE {
