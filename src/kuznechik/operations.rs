@@ -74,6 +74,133 @@ pub const BLOCK_SIZE: usize = 16; // Use bytes instead of bits
 pub const KEY_SIZE: usize = 32; // Use bytes instead of bits
 const L_VEC: [u8; 16] = [ 0x94, 0x20, 0x85, 0x10, 0xC2, 0xC0, 0x01, 0xFB, 0x01, 0xC0, 0xC2, 0x10, 0x85, 0x20, 0x94, 0x01 ];
 
+
+const L_MATRIX: [[u8; 16]; 16] = {
+    let mut matrix = [[0u8; 16]; 16];
+    let mut col = [0u8; 16];
+    
+    // Для каждого базисного вектора (0x00...1...0x00)
+    let mut i = 0;
+    while i < 16 {
+        // Создаем базисный вектор
+        let mut basis = [0u8; 16];
+        basis[i] = 1;
+        
+        // Применяем R-преобразование 16 раз
+        col = basis;
+        let mut j = 0;
+        while j < 16 {
+            col = r_transform_const(&col);
+            j += 1;
+        }
+        
+        // Заполняем матрицу
+        let mut k = 0;
+        while k < 16 {
+            matrix[k][i] = col[k];
+            k += 1;
+        }
+        i += 1;
+    }
+    matrix
+};
+
+// Матрица для обратного преобразования L^-1
+const L_INV_MATRIX: [[u8; 16]; 16] = {
+    let mut matrix = [[0u8; 16]; 16];
+    let mut col = [0u8; 16];
+    
+    // Для каждого базисного вектора (0x00...1...0x00)
+    let mut i = 0;
+    while i < 16 {
+        // Создаем базисный вектор
+        let mut basis = [0u8; 16];
+        basis[i] = 1;
+        
+        // Применяем R_inv-преобразование 16 раз
+        col = basis;
+        let mut j = 0;
+        while j < 16 {
+            col = r_inv_transform_const(&col);
+            j += 1;
+        }
+        
+        // Заполняем матрицу
+        let mut k = 0;
+        while k < 16 {
+            matrix[k][i] = col[k];
+            k += 1;
+        }
+        i += 1;
+    }
+    matrix
+};
+
+
+// Константные версии для вычисления во время компиляции
+const fn r_transform_const(state: &[u8; 16]) -> [u8; 16] {
+    let mut a_15: u8 = 0;
+    let mut i = 0;
+    while i < 16 {
+        a_15 ^= gf_mul_const(state[i], L_VEC[i]);
+        i += 1;
+    }
+    let mut result = [0u8; 16];
+    result[0] = a_15;
+    
+    i = 0;
+    while i < 15 {
+        result[i + 1] = state[i];
+        i += 1;
+    }
+    
+    result
+}
+
+const fn r_inv_transform_const(state: &[u8; 16]) -> [u8; 16] {
+    let a_15 = state[0];
+    let mut result = [0u8; 16];
+    
+    let mut i = 0;
+    while i < 15 {
+        result[i] = state[i + 1];
+        i += 1;
+    }
+    
+    let mut sum = 0u8;
+    i = 0;
+    while i < 15 {
+        sum ^= gf_mul_const(result[i], L_VEC[i]);
+        i += 1;
+    }
+    result[15] = a_15 ^ sum;
+    result
+}
+
+const fn gf_mul_const(a: u8, b: u8) -> u8 {
+    let mut c: u8 = 0;
+    let mut a_val = a;
+    let mut b_val = b;
+    let mut i = 0;
+    
+    while i < 8 {
+        if (b_val & 1) == 1 {
+            c ^= a_val;
+        }
+        let hi_bit = a_val & 0x80;
+        a_val <<= 1;
+        if hi_bit != 0 {
+            a_val ^= 0xC3;
+        }
+        b_val >>= 1;
+        i += 1;
+    }
+    c
+}
+
+
+
+
 // Direct operations
 
 pub fn x_transform(block: [u8; BLOCK_SIZE], xor_arr: [u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
@@ -119,6 +246,7 @@ fn gf_mul(a: u8, b: u8) -> u8 {
     c
 }
 
+#[allow(dead_code)]
 fn r_transform(state: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     let mut a_15: u8 = 0;
     for i in 0..BLOCK_SIZE {
@@ -133,13 +261,20 @@ fn r_transform(state: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     result
 }
 
+// Оптимизированная версия L-преобразования через матричное умножение
 pub fn l_transform(block: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
-    let mut internal = *block;
-    for _ in 0..16 {
-        internal = r_transform(&internal);
+    let mut result = [0u8; BLOCK_SIZE];
+    
+    // Матричное умножение: result[i] = sum_{j=0..15} L_MATRIX[i][j] * block[j]
+    // В GF(2^8) умножение заменяется на gf_mul, сложение - на XOR
+    for i in 0..BLOCK_SIZE {
+        let mut sum = 0u8;
+        for j in 0..BLOCK_SIZE {
+            sum ^= gf_mul(L_MATRIX[i][j], block[j]);
+        }
+        result[i] = sum;
     }
-    internal
-
+    result
 }
 
 // Inv operations
@@ -152,6 +287,7 @@ pub fn s_inv_transform(block: [u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     result
 }
 
+#[allow(dead_code)]
 fn r_inv_transform(state: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     let a_15 = state[0];
     let mut result = [0u8; BLOCK_SIZE];
@@ -166,14 +302,19 @@ fn r_inv_transform(state: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
     result
 }
 
-pub fn l_inv_transform(state: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
-    let mut result = *state;
-    for _ in 0..16 {
-        result = r_inv_transform(&result);
+// Оптимизированная версия обратного L-преобразования
+pub fn l_inv_transform(block: &[u8; BLOCK_SIZE]) -> [u8; BLOCK_SIZE] {
+    let mut result = [0u8; BLOCK_SIZE];
+    
+    for i in 0..BLOCK_SIZE {
+        let mut sum = 0u8;
+        for j in 0..BLOCK_SIZE {
+            sum ^= gf_mul(L_INV_MATRIX[i][j], block[j]);
+        }
+        result[i] = sum;
     }
     result
 }
-
 
 
 
