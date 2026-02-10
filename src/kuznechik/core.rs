@@ -21,24 +21,24 @@ impl Kuznechik {
     }
 
     pub fn encrypt_block(&self, block: &mut Block) -> [u8; BLOCK_SIZE] {
-        // 9 раундов с преобразованиями X -> S -> L
+        // 9 rounds X -> S -> L
         for round in 1..=9 {
             block.x(self.keys.get_round_key(round));
             block.s();
             block.l();
         }
 
-        // 10-й раунд (только X-преобразование)
+        // 10 round only X
         block.x(self.keys.get_round_key(10));
         block.get_block()
     }
 
     pub fn decrypt_block(&self, block: &mut Block) -> [u8; BLOCK_SIZE] {
 
-        // 10-й раунд в обратном порядке (только X)
+        // 10 round only X
         block.x(self.keys.get_round_key(10));
 
-        // 9 раундов в обратном порядке: L⁻¹ -> S⁻¹ -> X
+        // 9 round L_inv -> S_inv -> X
         for round in (1..=9).rev() {
             block.l_inv();
             block.s_inv();
@@ -87,7 +87,7 @@ impl Kuznechik {
             }
         }
         
-        // 2. Init reg_r (из ГОСТ, R1 = IV)
+        // 2. Init reg_r
         let mut reg_r = iv.to_vec();
         let m = reg_r.len();
         
