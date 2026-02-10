@@ -56,7 +56,7 @@ fn main() {
     
     println!("=== Бенчмарк шифрования файлов ===\n");
     
-    let test_files = ["test_1k.bin", "test_10k.bin", "test_100k.bin", "test_1m.bin", "test_10m.bin", "test_50m.bin", "test_100m.bin"];
+    let test_files = ["test_1k.bin", "test_10k.bin", "test_100k.bin", "test_1m.bin", "test_10m.bin", "test_50m.bin"];
     
     for filename in test_files.iter() {
         if std::path::Path::new(filename).exists() {
